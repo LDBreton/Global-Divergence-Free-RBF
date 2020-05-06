@@ -1,0 +1,7 @@
+-I/home/porufes/Dropbox/Programas Numericos/FBR C++/eigen-eigen-5a0156e40feb
+-I/home/porufes/Dropbox/Programas Numericos/FBR C++/eigen-eigen-5a0156e40feb/build_dir
+-I/usr/include/qt4
+-DNDEBUG
+-o
+/home/porufes/Dropbox/Programas Numericos/FBR C++/eigen-eigen-5a0156e40feb/build_dir/demos/mandelbrot/mandelbrot.moc
+/home/porufes/Dropbox/Programas Numericos/FBR C++/eigen-eigen-5a0156e40feb/demos/mandelbrot/mandelbrot.h

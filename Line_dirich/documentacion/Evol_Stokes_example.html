@@ -1,0 +1,359 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>Evol_Stokes_example</title><meta name="generator" content="MATLAB 9.1"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-11-26"><meta name="DC.source" content="Evol_Stokes_example.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Librerias</a></li><li><a href="#2">Tipo de precision en las variables</a></li><li><a href="#3">Definiendo Variables simbolicas</a></li><li><a href="#5">Definiendo la funcion de base radial</a></li><li><a href="#7">Definiendo los operadores de la ecuacion de Stokes</a></li><li><a href="#11">Realizando el calculo simbolico</a></li><li><a href="#13">Obteniendo puntos de la malla</a></li><li><a href="#16">Construyendo las matrices del sistema</a></li><li><a href="#20">Programando las constantes del metodo BDF1 FBR</a></li><li><a href="#25">Aplicando el metodo BDF1</a></li></ul></div><h2 id="1">Librerias</h2><pre class="codeinput">addpath(<span class="string">'../Libs/AdvanpixMCT-4.4.5.12698'</span>) <span class="comment">%% libreria de multipresicion</span>
+addpath(<span class="string">'../Libs/DivFree_libreria/'</span>) <span class="comment">%% libreria de las funciones</span>
+addpath(<span class="string">'../Libs/distmesh/'</span>) <span class="comment">%% libreria de la mallas</span>
+</pre><h2 id="2">Tipo de precision en las variables</h2><pre class="codeinput">class_t = <span class="string">'mp'</span>;
+Tipo = @(foo) numeric_t(foo,class_t);
+mp.Digits(50);
+</pre><h2 id="3">Definiendo Variables simbolicas</h2><p><b>Nota la parte sumbolica puede ser ejecutada una sola vez</b> centros = x2,y2 nodos = x1,y1</p><pre class="codeinput">sym_vars = {<span class="string">'x1'</span>,<span class="string">'y1'</span>,<span class="string">'x2'</span>,<span class="string">'y2'</span>,<span class="string">'c'</span>,<span class="string">'muu'</span>};
+syms(sym_vars);
+</pre><p>Las variables x1,y1,x2,y2 siempre tiene que estar al principio y presentes</p><h2 id="5">Definiendo la funcion de base radial</h2><pre class="codeinput">fbr = 1/sqrt(1 + c*((x1-x2)^2 + (y1-y2)^2));
+</pre><h2 id="7">Definiendo los operadores de la ecuacion de Stokes</h2><p><img src="Evol_Stokes_example_eq11122256178856135109.png" alt="$$L_{1}(u,p) =  -\mu \Delta e_{1} + \frac{\partial e_3}{\partial x}$$"></p><p><img src="Evol_Stokes_example_eq07165587065650804743.png" alt="$$L_{2}(u,p) =  -\mu \Delta e_{2} + \frac{\partial e_3}{\partial y}$$"></p><p><img src="Evol_Stokes_example_eq07536059212228178625.png" alt="$$B_{1}(u,p) = e_{1}$$"></p><p><img src="Evol_Stokes_example_eq14606810947122011852.png" alt="$$B_{2}(u,p) = e_{2}$$"></p><pre class="codeinput">L1c = @(f) (-muu*laplacian(f(1),[x2,y2]) +diff(f(3),<span class="string">'x2'</span>));
+L2c = @(f) (-muu*laplacian(f(2),[x2,y2]) +diff(f(3),<span class="string">'y2'</span>));
+B1 = @(f) (f(1));
+B2 = @(f) (f(2));
+L1 = @(f) (-muu*laplacian(f(1),[x1,y1]) +diff(f(3),<span class="string">'x1'</span>));
+L2 = @(f) (-muu*laplacian(f(2),[x1,y1]) +diff(f(3),<span class="string">'y1'</span>));
+</pre><p>Operadores para obtener la presion</p><pre class="codeinput"><span class="comment">%para obtener la presion</span>
+Px = @(f) diff(f(3),<span class="string">'x1'</span>);
+Py = @(f) diff(f(3),<span class="string">'y1'</span>);
+</pre><p>Juntando los operadores en 2 celdas</p><pre class="codeinput">OperadoresY = {L1c,L2c,B1,B2}; <span class="comment">%operadores para el anzatz</span>
+OperadoresX = {L1,L2,B1,B2,Px,Py}; <span class="comment">%operadores que le vamos aplicar al anzatz</span>
+</pre><h2 id="11">Realizando el calculo simbolico</h2><pre class="codeinput">disp(<span class="string">'comenzando el calculo symbolico'</span>)
+var_c = Tipo(<span class="string">'0.1'</span>);
+var_muu = Tipo(<span class="string">'1'</span>);
+[fbrGram,fbrAnzatz] = Fbr_Sym_Anzat(sym_vars,fbr,OperadoresY,OperadoresX,var_c,var_muu);
+disp(<span class="string">'fin del calculo symbolico'</span>)
+</pre><pre class="codeoutput">comenzando el calculo symbolico
+fin del calculo symbolico
+</pre><p>Fbr_Sym_Anzat nos regresa las siguientes celdas:</p><p><img src="Evol_Stokes_example_eq14188911391314592641.png" alt="$$fbrAnzatz\{i,j\}=\phi^{OperadoresY_{i}}_{j}$$"></p><p><img src="Evol_Stokes_example_eq00690330908260090330.png" alt="$$fbrGram\{i,j\}=OperadoresX_{j}(\phi^{OperadoresY_{i}}_1,\phi^{OperadoresY_{i}}_2,\phi^{OperadoresY_{i}}_3)$$"></p><p>Donde:</p><p><img src="Evol_Stokes_example_eq09226943199192720481.png" alt="$$ fbrAnzatz\{i,j\}(x1,y1,x2,y2)\rightarrow R $$"></p><p>y</p><p><img src="Evol_Stokes_example_eq16079985537291512097.png" alt="$$ fbrGram\{i,j\}(x1,y1,x2,y2)\rightarrow R $$"></p><h2 id="13">Obteniendo puntos de la malla</h2><pre class="codeinput">[ P_ni, P_f ] = gridmakercirlceuni(10);
+</pre><img vspace="5" hspace="5" src="Evol_Stokes_example_01.png" alt=""> <pre class="codeinput"><span class="comment">%transformamos los puntos a tipo Multi presicion</span>
+P_ni = Tipo(P_ni); <span class="comment">% P_in = puntos interiores</span>
+P_f = Tipo(P_f);<span class="comment">% P_f Puntos de Frontera</span>
+</pre><h2 id="16">Construyendo las matrices del sistema</h2><p>Ver seccion 3.2 del articulo</p><p>Definiendo los centros las funciones de base radial</p><pre class="codeinput">Centros = {P_ni ,P_ni, P_f ,P_f };
+</pre><p>Se uliliza la funcion BuildMGram para construir las matrices</p><pre class="codeinput">M_phi1 = BuildMGram(fbrAnzatz(:,1),{P_ni},Centros,Tipo);
+M_phi2 = BuildMGram(fbrAnzatz(:,2),{P_ni},Centros,Tipo);
+M_Lphi1 = BuildMGram(fbrGram(:,1),{P_ni},Centros,Tipo);
+M_Lphi2 = BuildMGram(fbrGram(:,2),{P_ni},Centros,Tipo);
+M_Bphi1 = BuildMGram(fbrGram(:,3),{P_f},Centros,Tipo);
+M_Bphi2 = BuildMGram(fbrGram(:,4),{P_f},Centros,Tipo);
+Interpolation_matrixPx = BuildMGram(fbrGram(:,5),{P_ni},Centros,Tipo);
+Interpolation_matrixPy = BuildMGram(fbrGram(:,6),{P_ni},Centros,Tipo);
+</pre><p>Por ejemplo M_phi1 = BuildMGram(fbrAnzatz(:,1),{P_ni},Centros,Tipo); esta linea equivale a lo siguiente:</p><p><b>M_phi1</b> =</p><pre>         [ BuildMGram(fbrAnzatz(*1*,1),{P_ni},{P_ni}=centros{*1*},Tipo), ...</pre><pre>          BuildMGram(fbrAnzatz(*2*,1),{P_ni},{P_ni}=centros{*2*},Tipo), ...</pre><pre>          BuildMGram(fbrAnzatz(*3*,1),{P_ni},{P_f}=centros{*3*},Tipo), ...</pre><pre>          BuildMGram(fbrAnzatz(*4*,1),{P_ni},{P_f}=centros{*4*},Tipo)]</pre><p>y Por ejemplo si <b>A=BuildMGram(fbrAnzatz(4,1),{P_ni},{P_f}=centros{4},Tipo)</b></p><p><img src="Evol_Stokes_example_eq05562751541335209607.png" alt="$$Pni = {P^1,P^2,P^3,...}$$ y $$P_f = {Pf^1,Pf^2,Pf^3,...}$$"></p><p><img src="Evol_Stokes_example_eq10769413404253820729.png" alt="$$A_{i,j} = fbrAnzatz\{4,1\}(P^{i}_{x},P^{i}_{y},Pf^{j}_{x},Pf^{f}_{y})$$"></p><h2 id="20">Programando las constantes del metodo BDF1 FBR</h2><p>Creando el sistema del lado izquiero del methodo bdf1 en funcion del paso dt</p><pre class="codeinput">sistema_bdf1dt = @(dt) [M_phi1 + dt*M_Lphi1 ; <span class="keyword">...</span>
+                        M_phi2 + dt*M_Lphi2 ; <span class="keyword">...</span>
+                        M_Bphi1; <span class="keyword">...</span>
+                        M_Bphi2; <span class="keyword">...</span>
+                        ];
+</pre><p>Obteniendo la solucion exacta y las fuentes de la ecuacion</p><pre class="codeinput">[f1,f2,u_exact1,u_exact2,p_x,p_y] = Exact_sol(var_muu,Tipo);
+</pre><p>Creando el lado derecho del methodo bdf1</p><pre class="codeinput">RHS_bdf1 = @(dt,T,Y1,Y2) vertcat( dt*f1(P_ni,T) + Y1, <span class="keyword">...</span>
+								  dt*f2(P_ni,T) + Y2, <span class="keyword">...</span>
+								  u_exact1(P_f,T),<span class="keyword">...</span>
+								  u_exact2(P_f,T));
+</pre><p>Definiendo las constantes</p><pre class="codeinput">steps = 5;
+dt = mp(<span class="string">'1/100'</span>);
+Sistema_bdf1 = sistema_bdf1dt(dt);
+</pre><p>Definiendo el tiempo inicial y las condiciones inicales</p><pre class="codeinput">T = 0;
+yinicial1= u_exact1(P_ni,T);
+yinicial2= u_exact2(P_ni,T);
+</pre><h2 id="25">Aplicando el metodo BDF1</h2><pre class="codeinput"><span class="keyword">for</span> i=1:steps
+    disp(i);
+    <span class="comment">%incrementando el tiempo</span>
+    T = T + dt;
+    b = RHS_bdf1(dt,T,yinicial1,yinicial2);
+
+    <span class="comment">%resolviendo el sistema</span>
+    Lambda = Sistema_bdf1\b;
+
+    <span class="comment">%obteniendo la solucion</span>
+    yinicial1= (M_phi1*Lambda);
+    yinicial2= (M_phi2*Lambda);
+
+    <span class="comment">%calculando el error</span>
+    Errorpx= (Interpolation_matrixPx*Lambda)-p_x(P_ni,T);
+    Errorpy= (Interpolation_matrixPy*Lambda)-p_y(P_ni,T);
+    y1_exact = u_exact1(P_ni,T);
+    y2_exact = u_exact2(P_ni,T);
+
+    error1=max(abs(yinicial1-y1_exact));
+    error2=max(abs(yinicial2-y2_exact));
+    errorppx=max(abs(Errorpx));
+    errorppy=max(abs(Errorpy));
+
+    fprintf(<span class="string">'El error del campo vector es %d \n'</span>,double(max(error1,error2)))
+	fprintf(<span class="string">'El de la precion es %d \n'</span>,double(max(errorppx,errorppy)))
+<span class="keyword">end</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+<span class="comment">%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%</span>
+</pre><pre class="codeoutput">     1
+
+El error del campo vector es 1.736142e-05 
+El de la precion es 9.322428e-09 
+     2
+
+El error del campo vector es 5.604454e-05 
+El de la precion es 4.197824e-08 
+     3
+
+El error del campo vector es 1.104198e-04 
+El de la precion es 4.333718e-08 
+     4
+
+El error del campo vector es 1.767361e-04 
+El de la precion es 5.251770e-08 
+     5
+
+El error del campo vector es 2.547016e-04 
+El de la precion es 6.957180e-08 
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2016b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Librerias
+addpath('../Libs/AdvanpixMCT-4.4.5.12698') %% libreria de multipresicion
+addpath('../Libs/DivFree_libreria/') %% libreria de las funciones
+addpath('../Libs/distmesh/') %% libreria de la mallas
+
+%% Tipo de precision en las variables
+class_t = 'mp'; 
+Tipo = @(foo) numeric_t(foo,class_t);
+mp.Digits(50);
+
+%% Definiendo Variables simbolicas
+% *Nota la parte sumbolica puede ser ejecutada una sola vez*
+% centros = x2,y2 
+% nodos = x1,y1
+sym_vars = {'x1','y1','x2','y2','c','muu'};
+syms(sym_vars); 
+%%
+% Las variables x1,y1,x2,y2 siempre tiene que estar al principio y
+% presentes
+
+%% Definiendo la funcion de base radial
+fbr = 1/sqrt(1 + c*((x1-x2)^2 + (y1-y2)^2));
+%%
+
+%% Definiendo los operadores de la ecuacion de Stokes 
+% $$L_{1}(u,p) =  -\mu \Delta e_{1} + \frac{\partial e_3}{\partial x}$$
+%
+% $$L_{2}(u,p) =  -\mu \Delta e_{2} + \frac{\partial e_3}{\partial y}$$
+%
+% $$B_{1}(u,p) = e_{1}$$
+%
+% $$B_{2}(u,p) = e_{2}$$
+L1c = @(f) (-muu*laplacian(f(1),[x2,y2]) +diff(f(3),'x2'));
+L2c = @(f) (-muu*laplacian(f(2),[x2,y2]) +diff(f(3),'y2'));
+B1 = @(f) (f(1));
+B2 = @(f) (f(2));
+L1 = @(f) (-muu*laplacian(f(1),[x1,y1]) +diff(f(3),'x1'));
+L2 = @(f) (-muu*laplacian(f(2),[x1,y1]) +diff(f(3),'y1'));
+
+%%
+% Operadores para obtener la presion
+%para obtener la presion
+Px = @(f) diff(f(3),'x1');
+Py = @(f) diff(f(3),'y1');
+%%
+
+%%
+% Juntando los operadores en 2 celdas
+OperadoresY = {L1c,L2c,B1,B2}; %operadores para el anzatz
+OperadoresX = {L1,L2,B1,B2,Px,Py}; %operadores que le vamos aplicar al anzatz
+
+%% Realizando el calculo simbolico
+disp('comenzando el calculo symbolico')
+var_c = Tipo('0.1');
+var_muu = Tipo('1');
+[fbrGram,fbrAnzatz] = Fbr_Sym_Anzat(sym_vars,fbr,OperadoresY,OperadoresX,var_c,var_muu);
+disp('fin del calculo symbolico')
+%%
+% Fbr_Sym_Anzat nos regresa las siguientes celdas:
+%
+% $$fbrAnzatz\{i,j\}=\phi^{OperadoresY_{i}}_{j}$$
+%
+% $$fbrGram\{i,j\}=OperadoresX_{j}(\phi^{OperadoresY_{i}}_1,\phi^{OperadoresY_{i}}_2,\phi^{OperadoresY_{i}}_3)$$
+%
+% Donde:
+%
+% $$ fbrAnzatz\{i,j\}(x1,y1,x2,y2)\rightarrow R $$
+%
+% y
+%
+% $$ fbrGram\{i,j\}(x1,y1,x2,y2)\rightarrow R $$
+%% Obteniendo puntos de la malla
+[ P_ni, P_f ] = gridmakercirlceuni(10); 
+%%
+
+%%
+%transformamos los puntos a tipo Multi presicion
+P_ni = Tipo(P_ni); % P_in = puntos interiores
+P_f = Tipo(P_f);% P_f Puntos de Frontera
+
+
+%% Construyendo las matrices del sistema
+% Ver seccion 3.2 del articulo
+
+%%
+% Definiendo los centros las funciones de base radial
+Centros = {P_ni ,P_ni, P_f ,P_f };
+
+%%
+% Se uliliza la funcion BuildMGram para construir las matrices
+M_phi1 = BuildMGram(fbrAnzatz(:,1),{P_ni},Centros,Tipo);
+M_phi2 = BuildMGram(fbrAnzatz(:,2),{P_ni},Centros,Tipo);
+M_Lphi1 = BuildMGram(fbrGram(:,1),{P_ni},Centros,Tipo);
+M_Lphi2 = BuildMGram(fbrGram(:,2),{P_ni},Centros,Tipo);
+M_Bphi1 = BuildMGram(fbrGram(:,3),{P_f},Centros,Tipo);
+M_Bphi2 = BuildMGram(fbrGram(:,4),{P_f},Centros,Tipo);
+Interpolation_matrixPx = BuildMGram(fbrGram(:,5),{P_ni},Centros,Tipo);
+Interpolation_matrixPy = BuildMGram(fbrGram(:,6),{P_ni},Centros,Tipo);
+%%
+% Por ejemplo M_phi1 = BuildMGram(fbrAnzatz(:,1),{P_ni},Centros,Tipo);
+% esta linea equivale a lo siguiente:
+%
+% *M_phi1* =
+%
+%           [ BuildMGram(fbrAnzatz(*1*,1),{P_ni},{P_ni}=centros{*1*},Tipo), ...
+%
+%            BuildMGram(fbrAnzatz(*2*,1),{P_ni},{P_ni}=centros{*2*},Tipo), ...
+%
+%            BuildMGram(fbrAnzatz(*3*,1),{P_ni},{P_f}=centros{*3*},Tipo), ...
+%
+%            BuildMGram(fbrAnzatz(*4*,1),{P_ni},{P_f}=centros{*4*},Tipo)]
+%
+% y
+% Por ejemplo si *A=BuildMGram(fbrAnzatz(4,1),{P_ni},{P_f}=centros{4},Tipo)* 
+%
+% $$Pni = {P^1,P^2,P^3,...}$$ y $$P_f = {Pf^1,Pf^2,Pf^3,...}$$
+%
+% $$A_{i,j} = fbrAnzatz\{4,1\}(P^{i}_{x},P^{i}_{y},Pf^{j}_{x},Pf^{f}_{y})$$
+
+
+%% Programando las constantes del metodo BDF1 FBR
+% Creando el sistema del lado izquiero del methodo bdf1
+% en funcion del paso dt
+sistema_bdf1dt = @(dt) [M_phi1 + dt*M_Lphi1 ; ...
+                        M_phi2 + dt*M_Lphi2 ; ...
+                        M_Bphi1; ...
+                        M_Bphi2; ...
+                        ];
+%%
+% Obteniendo la solucion exacta y las fuentes de la ecuacion
+[f1,f2,u_exact1,u_exact2,p_x,p_y] = Exact_sol(var_muu,Tipo);
+
+%%
+% Creando el lado derecho del methodo bdf1
+RHS_bdf1 = @(dt,T,Y1,Y2) vertcat( dt*f1(P_ni,T) + Y1, ...
+								  dt*f2(P_ni,T) + Y2, ...
+								  u_exact1(P_f,T),...
+								  u_exact2(P_f,T));
+
+%%
+% Definiendo las constantes
+steps = 5;
+dt = mp('1/100');
+Sistema_bdf1 = sistema_bdf1dt(dt);
+
+%%
+% Definiendo el tiempo inicial y las condiciones inicales
+T = 0;
+yinicial1= u_exact1(P_ni,T);
+yinicial2= u_exact2(P_ni,T);
+
+%% Aplicando el metodo BDF1
+for i=1:steps
+    disp(i);
+    %incrementando el tiempo
+    T = T + dt;
+    b = RHS_bdf1(dt,T,yinicial1,yinicial2);
+    
+    %resolviendo el sistema
+    Lambda = Sistema_bdf1\b;
+    
+    %obteniendo la solucion
+    yinicial1= (M_phi1*Lambda);
+    yinicial2= (M_phi2*Lambda);
+    
+    %calculando el error
+    Errorpx= (Interpolation_matrixPx*Lambda)-p_x(P_ni,T);
+    Errorpy= (Interpolation_matrixPy*Lambda)-p_y(P_ni,T);
+    y1_exact = u_exact1(P_ni,T);
+    y2_exact = u_exact2(P_ni,T);
+    
+    error1=max(abs(yinicial1-y1_exact));
+    error2=max(abs(yinicial2-y2_exact));
+    errorppx=max(abs(Errorpx));
+    errorppy=max(abs(Errorpy));
+    
+    fprintf('El error del campo vector es %d \n',double(max(error1,error2)))
+	fprintf('El de la precion es %d \n',double(max(errorppx,errorppy)))
+end
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%			   
+
+##### SOURCE END #####
+--></body></html>

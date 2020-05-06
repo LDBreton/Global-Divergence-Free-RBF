@@ -1,0 +1,13 @@
+real radiuos = 0.5;
+border C01(theta=0,2*pi){
+x = radiuos*((0.8 + 0.1*(sin(6.0*theta) + sin(3.0*theta)))*cos(theta));
+y = radiuos*((0.8 + 0.1*(sin(6.0*theta) + sin(3.0*theta)))*sin(theta)); 
+label = 1;} 
+
+mesh Th = buildmesh(C01(400));
+real area = int2d(Th)(1.0);
+real borderme = int1d(Th)(1.0);
+
+
+cout << "Area = " << area << endl;
+cout << "perimeter = " << borderme << endl;
